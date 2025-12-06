@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+
+// schema.prisma
+
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  role      Role     @default(ADMIN)
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  assignedInquiries Inquiry[]
+}
+
+enum Role {
+  ADMIN
+  SALES
+  SUPERADMIN
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  description String
+  specs       Json
+  images      ImageAsset[]
+  featured    Boolean     @default(false)
+  showOnHome  Boolean     @default(false)
+  metaSEO     Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  inquiries   Inquiry[]
+}
+
+model Inquiry {
+  id         String   @id @default(cuid())
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String
+  name       String
+  email      String
+  phone      String?
+  message    String
+  status     InquiryStatus @default(NEW)
+  assignedTo User?    @relation(fields: [assignedToId], references: [id])
+  assignedToId String?
+  notes      Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model Agent {
+  id        String   @id @default(cuid())
+  name      String
+  type      AgentType
+  enabled   Boolean  @default(true)
+  config    Json?
+  logs      Json[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AgentType {
+  LEAD_GEN
+  LINKEDIN
+  EMAIL_RESPONDER
+  CHAT_SUPPORT
+  SEO
+  IMAGE_FIXER
+}
+
+model UiContent {
+  id       String   @id @default(cuid())
+  header   String?
+  sliders  Json?    // Array of {image, title, link}
+  footer   Json?
+  promos   Json?
+  updatedAt DateTime @updatedAt
+}
+
+model ImageAsset {
+  id        String   @id @default(cuid())
+  filename  String
+  altText   String?
+  optimized Boolean  @default(false)
+  product   Product? @relation(fields: [productId], references: [id])
+  productId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
