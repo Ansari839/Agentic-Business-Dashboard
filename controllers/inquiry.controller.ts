@@ -38,10 +38,11 @@ export const createInquiry = async (request: Request) => {
         const body = await request.json();
         const validatedData = createInquirySchema.parse(body);
 
+        const { productId, ...rest } = validatedData;
+
         const match = await inquiryService.createInquiry({
-            ...validatedData,
-            product: { connect: { id: validatedData.productId } }
-            // Note: Prisma create input expects relations differently than flat object
+            ...rest,
+            product: { connect: { id: productId } }
         });
         return NextResponse.json(match, { status: 201 });
     } catch (error: any) {
