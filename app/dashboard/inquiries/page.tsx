@@ -15,29 +15,56 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { formatPhone } from "@/helpers/formatPhone";
 
 interface Inquiry {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     status: string;
     product: { title: string } | null;
     assignedTo: { name: string } | null;
     createdAt: string;
 }
 
+interface Product {
+    id: string;
+    title: string;
+}
+
 export default function InquiriesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
 
     // URL params state
     const page = Number(searchParams.get("page")) || 1;
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const productId = searchParams.get("productId") || "";
+
     const [searchTerm, setSearchTerm] = useState(search);
     const [statusFilter, setStatusFilter] = useState(status);
+    const [productFilter, setProductFilter] = useState(productId);
+
+    // Fetch Products for Filter
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch("/api/products?limit=100");
+                if (res.ok) {
+                    const data = await res.json();
+                    setProducts(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch products", error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     useEffect(() => {
         const fetchInquiries = async () => {
@@ -48,6 +75,7 @@ export default function InquiriesPage() {
                     limit: "10",
                     search: search,
                     ...(status && { status }),
+                    ...(productId && { productId }),
                 });
                 const res = await fetch(`/api/inquiries?${query.toString()}`);
                 if (!res.ok) throw new Error("Failed to fetch");
@@ -60,7 +88,7 @@ export default function InquiriesPage() {
             }
         };
         fetchInquiries();
-    }, [page, search, status]); // Dependencies triggering fetch
+    }, [page, search, status, productId]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,6 +99,12 @@ export default function InquiriesPage() {
         const val = e.target.value;
         setStatusFilter(val);
         updateParams({ status: val, page: 1 });
+    }
+
+    const handleProductChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setProductFilter(val);
+        updateParams({ productId: val, page: 1 });
     }
 
     const updateParams = (updates: any) => {
@@ -95,7 +129,7 @@ export default function InquiriesPage() {
                 <CardHeader>
                     <div className="flex flex-col md:flex-row justify-between gap-4">
                         <CardTitle className="pt-2">List</CardTitle>
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                             <form onSubmit={handleSearch} className="flex gap-2">
                                 <Input
                                     placeholder="Search name/email..."
@@ -117,6 +151,18 @@ export default function InquiriesPage() {
                                 <option value="CONTACTED">Contacted</option>
                                 <option value="CLOSED">Closed</option>
                             </select>
+                            <select
+                                className="flex h-10 w-[200px] items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                value={productFilter}
+                                onChange={handleProductChange}
+                            >
+                                <option value="">All Products</option>
+                                {products.map((product) => (
+                                    <option key={product.id} value={product.id}>
+                                        {product.title}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
                 </CardHeader>
@@ -127,6 +173,7 @@ export default function InquiriesPage() {
                                 <TableHead>Product</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Email</TableHead>
+                                <TableHead>Phone</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Assigned To</TableHead>
                                 <TableHead>Created At</TableHead>
@@ -136,11 +183,11 @@ export default function InquiriesPage() {
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center">Loading...</TableCell>
+                                    <TableCell colSpan={8} className="text-center">Loading...</TableCell>
                                 </TableRow>
                             ) : inquiries.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center">No inquiries found.</TableCell>
+                                    <TableCell colSpan={8} className="text-center">No inquiries found.</TableCell>
                                 </TableRow>
                             ) : (
                                 inquiries.map((inquiry) => (
@@ -148,10 +195,11 @@ export default function InquiriesPage() {
                                         <TableCell>{inquiry.product?.title || '-'}</TableCell>
                                         <TableCell className="font-medium">{inquiry.name}</TableCell>
                                         <TableCell>{inquiry.email}</TableCell>
+                                        <TableCell>{formatPhone(inquiry.phone)}</TableCell>
                                         <TableCell>
                                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${inquiry.status === 'NEW' ? 'bg-blue-100 text-blue-800' :
-                                                    inquiry.status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-800' :
-                                                        'bg-gray-100 text-gray-800'
+                                                inquiry.status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-800' :
+                                                    'bg-gray-100 text-gray-800'
                                                 }`}>
                                                 {inquiry.status}
                                             </span>
