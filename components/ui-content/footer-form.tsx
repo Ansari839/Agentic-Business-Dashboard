@@ -6,47 +6,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash, Plus } from "lucide-react";
+import { Trash, Plus, GripVertical } from "lucide-react";
 
 interface FooterFormProps {
-    initialData?: any;
+    initialData?: any[];
 }
 
-export function FooterForm({ initialData }: FooterFormProps) {
+export function FooterForm({ initialData = [] }: FooterFormProps) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [footer, setFooter] = useState({
-        column1: initialData?.column1 || { title: "", links: [] },
-        column2: initialData?.column2 || { title: "", links: [] },
-        contactInfo: initialData?.contactInfo || { address: "", email: "", phone: "" },
-    });
+    // Ensure we work with an array even if old data was object
+    const [sections, setSections] = useState(Array.isArray(initialData) ? initialData : []);
 
-    const handleContactChange = (field: string, value: string) => {
-        setFooter(prev => ({ ...prev, contactInfo: { ...prev.contactInfo, [field]: value } }));
+    const handleSectionTitleChange = (index: number, value: string) => {
+        const newSections = [...sections];
+        newSections[index] = { ...newSections[index], title: value };
+        setSections(newSections);
     }
 
-    const handleColumnTitleChange = (column: 'column1' | 'column2', value: string) => {
-        setFooter(prev => ({ ...prev, [column]: { ...prev[column], title: value } }));
+    const addSection = () => {
+        setSections([...sections, { title: "New Section", links: [] }]);
     }
 
-    const handleLinkChange = (column: 'column1' | 'column2', index: number, field: string, value: string) => {
-        const newLinks = [...footer[column].links];
-        newLinks[index] = { ...newLinks[index], [field]: value };
-        setFooter(prev => ({ ...prev, [column]: { ...prev[column], links: newLinks } }));
+    const removeSection = (index: number) => {
+        setSections(sections.filter((_, i) => i !== index));
     }
 
-    const addLink = (column: 'column1' | 'column2') => {
-        setFooter(prev => ({
-            ...prev,
-            [column]: { ...prev[column], links: [...prev[column].links, { label: "", href: "" }] }
-        }));
+    const handleLinkChange = (sectionIndex: number, linkIndex: number, field: string, value: string) => {
+        const newSections = [...sections];
+        const newLinks = [...newSections[sectionIndex].links];
+        newLinks[linkIndex] = { ...newLinks[linkIndex], [field]: value };
+        newSections[sectionIndex].links = newLinks;
+        setSections(newSections);
     }
 
-    const removeLink = (column: 'column1' | 'column2', index: number) => {
-        setFooter(prev => ({
-            ...prev,
-            [column]: { ...prev[column], links: prev[column].links.filter((_, i) => i !== index) }
-        }));
+    const addLink = (sectionIndex: number) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].links.push({ label: "", href: "" });
+        setSections(newSections);
+    }
+
+    const removeLink = (sectionIndex: number, linkIndex: number) => {
+        const newSections = [...sections];
+        newSections[sectionIndex].links = newSections[sectionIndex].links.filter((_: any, i: number) => i !== linkIndex);
+        setSections(newSections);
     }
 
     const onSubmit = async (e: React.FormEvent) => {
@@ -56,7 +59,7 @@ export function FooterForm({ initialData }: FooterFormProps) {
             const res = await fetch("/api/ui-content/footer", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(footer),
+                body: JSON.stringify(sections),
             });
 
             if (!res.ok) throw new Error("Failed to update");
@@ -69,81 +72,70 @@ export function FooterForm({ initialData }: FooterFormProps) {
         }
     };
 
-    const renderColumnEditor = (columnKey: 'column1' | 'column2', label: string) => (
-        <Card>
-            <CardHeader>
-                <CardTitle>{label}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Title</Label>
-                    <Input
-                        value={footer[columnKey].title}
-                        onChange={(e) => handleColumnTitleChange(columnKey, e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                        <Label>Links</Label>
-                        <Button type="button" size="sm" variant="outline" onClick={() => addLink(columnKey)}>
-                            <Plus className="h-4 w-4 mr-2" /> Add
-                        </Button>
-                    </div>
-                    {footer[columnKey].links.map((link: any, i: number) => (
-                        <div key={i} className="flex gap-2 items-center">
-                            <Input
-                                placeholder="Label"
-                                value={link.label}
-                                onChange={(e) => handleLinkChange(columnKey, i, 'label', e.target.value)}
-                            />
-                            <Input
-                                placeholder="Link"
-                                value={link.href}
-                                onChange={(e) => handleLinkChange(columnKey, i, 'href', e.target.value)}
-                            />
-                            <Button type="button" variant="ghost" size="icon" onClick={() => removeLink(columnKey, i)}>
-                                <Trash className="h-4 w-4 text-red-500" />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    );
-
     return (
         <form onSubmit={onSubmit} className="space-y-6 max-w-5xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {renderColumnEditor('column1', 'Column 1')}
-                {renderColumnEditor('column2', 'Column 2')}
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Footer Sections</h3>
+                <Button type="button" onClick={addSection}>
+                    <Plus className="h-4 w-4 mr-2" /> Add Section
+                </Button>
             </div>
 
-            <Card>
-                <CardHeader><CardTitle>Contact Info</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                        <Label>Address</Label>
-                        <Input
-                            value={footer.contactInfo.address}
-                            onChange={(e) => handleContactChange('address', e.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Email</Label>
-                        <Input
-                            value={footer.contactInfo.email}
-                            onChange={(e) => handleContactChange('email', e.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Phone</Label>
-                        <Input
-                            value={footer.contactInfo.phone}
-                            onChange={(e) => handleContactChange('phone', e.target.value)}
-                        />
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sections.map((section: any, sIndex: number) => (
+                    <Card key={sIndex} className="relative">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 text-red-500 z-10"
+                            onClick={() => removeSection(sIndex)}
+                        >
+                            <Trash className="h-4 w-4" />
+                        </Button>
+                        <CardHeader>
+                            <div className="mr-8">
+                                <Label>Section Title</Label>
+                                <Input
+                                    value={section.title}
+                                    onChange={(e) => handleSectionTitleChange(sIndex, e.target.value)}
+                                />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <Label>Links</Label>
+                                    <Button type="button" size="sm" variant="outline" onClick={() => addLink(sIndex)}>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                    </Button>
+                                </div>
+                                {section.links.map((link: any, lIndex: number) => (
+                                    <div key={lIndex} className="flex gap-2 items-center">
+                                        <div className="space-y-1 flex-1">
+                                            <Input
+                                                placeholder="Label"
+                                                value={link.label}
+                                                onChange={(e) => handleLinkChange(sIndex, lIndex, 'label', e.target.value)}
+                                                className="h-8 text-xs"
+                                            />
+                                            <Input
+                                                placeholder="Link"
+                                                value={link.href}
+                                                onChange={(e) => handleLinkChange(sIndex, lIndex, 'href', e.target.value)}
+                                                className="h-8 text-xs"
+                                            />
+                                        </div>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removeLink(sIndex, lIndex)}>
+                                            <Trash className="h-3 w-3 text-red-500" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
 
             <div className="flex justify-end">
                 <Button type="submit" disabled={loading}>

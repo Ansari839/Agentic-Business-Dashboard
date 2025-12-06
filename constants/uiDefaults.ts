@@ -20,32 +20,37 @@ export const DEFAULT_SLIDERS = [
     },
 ];
 
-export const DEFAULT_FOOTER = {
-    column1: {
+export const DEFAULT_FOOTER = [
+    {
         title: 'Company',
         links: [
             { label: 'About Us', href: '/about' },
             { label: 'Careers', href: '/careers' },
         ]
     },
-    column2: {
+    {
         title: 'Support',
         links: [
             { label: 'Help Center', href: '/help' },
             { label: 'Terms', href: '/terms' },
         ]
     },
-    contactInfo: {
-        address: '123 Main St, City, Country',
-        email: 'support@example.com',
-        phone: '+1 234 567 8900'
+    {
+        title: 'Contact',
+        links: [
+            { label: 'Email', href: 'mailto:support@example.com' },
+            { label: 'Phone', href: 'tel:+123456789' }
+        ]
     }
-};
+];
 
-export const DEFAULT_PROMOS = {
-    title: 'Summer Sale',
-    description: 'Get 50% off on all products',
-    bannerImage: 'https://placehold.co/1200x400',
-    buttonText: 'Shop Now',
-    buttonLink: '/products',
-};
+export const DEFAULT_PROMOS = [
+    {
+        title: 'Summer Sale',
+        description: 'Get 50% off on all products',
+        bannerImage: 'https://placehold.co/1200x400',
+        buttonText: 'Shop Now',
+        buttonLink: '/products',
+        active: true,
+    }
+];

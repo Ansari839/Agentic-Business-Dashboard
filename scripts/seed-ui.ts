@@ -39,8 +39,8 @@ const DUMMY_SLIDERS = [
     },
 ];
 
-const DUMMY_FOOTER = {
-    column1: {
+const DUMMY_FOOTER = [
+    {
         title: 'Shop',
         links: [
             { label: 'All Products', href: '/products' },
@@ -48,7 +48,7 @@ const DUMMY_FOOTER = {
             { label: 'Deals', href: '/deals' },
         ]
     },
-    column2: {
+    {
         title: 'Customer Care',
         links: [
             { label: 'Track Order', href: '/order-status' },
@@ -56,20 +56,34 @@ const DUMMY_FOOTER = {
             { label: 'FAQs', href: '/faqs' },
         ]
     },
-    contactInfo: {
-        address: '123 Tech Park, Innovation Blvd, San Francisco, CA',
-        email: 'hello@techhaven.com',
-        phone: '+1 (800) 123-4567'
+    {
+        title: 'Contact',
+        links: [
+            { label: 'Email', href: 'mailto:hello@techhaven.com' },
+            { label: 'Phone', href: 'tel:+18001234567' },
+            { label: 'Address', href: '#' } // Used link for address to simplify schema reuse
+        ]
     }
-};
+];
 
-const DUMMY_PROMOS = {
-    title: 'Limited Time Offer!',
-    description: 'Get free shipping on all orders over $500. Use code SHIP500 at checkout.',
-    bannerImage: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200',
-    buttonText: 'Claim Offer',
-    buttonLink: '/cart',
-};
+const DUMMY_PROMOS = [
+    {
+        title: 'Limited Time Offer!',
+        description: 'Get free shipping on all orders over $500. Use code SHIP500 at checkout.',
+        bannerImage: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200',
+        buttonText: 'Claim Offer',
+        buttonLink: '/cart',
+        active: true,
+    },
+    {
+        title: 'New Arrivals',
+        description: 'Check out the latest tech gadgets.',
+        bannerImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=1200',
+        buttonText: 'View New',
+        buttonLink: '/products/new',
+        active: false,
+    }
+];
 
 async function seedUi() {
     console.log('Seeding UI Content...');
