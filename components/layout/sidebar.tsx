@@ -42,7 +42,7 @@ export function Sidebar({ role }: SidebarProps) {
         {
             label: "UI Editor",
             icon: Palette,
-            href: "/dashboard/ui-editor",
+            href: "/dashboard/ui-content",
             color: "text-orange-700",
         },
         {
