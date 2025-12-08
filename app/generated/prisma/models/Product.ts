@@ -427,10 +427,6 @@ export type ProductNullableScalarRelationFilter = {
   isNot?: Prisma.ProductWhereInput | null
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type ProductCreateNestedOneWithoutInquiriesInput = {
   create?: Prisma.XOR<Prisma.ProductCreateWithoutInquiriesInput, Prisma.ProductUncheckedCreateWithoutInquiriesInput>
   connectOrCreate?: Prisma.ProductCreateOrConnectWithoutInquiriesInput

@@ -19,9 +19,14 @@ model User {
   email     String   @unique
   role      Role     @default(ADMIN)
   password  String
+  isActive  Boolean  @default(true)
+  apiLimits Json?
+  apiUsage  Json?
+  featureFlags Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   assignedInquiries Inquiry[]
+  auditLogs       AuditLog[]
 }
 
 enum Role {
@@ -122,4 +127,26 @@ enum NotificationType {
   INQUIRY
   AGENT_COMPLETE
   AGENT_ERROR
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  entity      String
+  entityId    String?
+  details     Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+}
+
+model FeatureToggle {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  isEnabled   Boolean  @default(true)
+  description String?
+  updatedAt   DateTime @updatedAt
 }

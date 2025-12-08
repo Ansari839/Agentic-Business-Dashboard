@@ -12,7 +12,8 @@ import {
     Bot,
     Settings,
     BarChart3,
-    FileText
+    FileText,
+    FileClock
 } from "lucide-react";
 
 interface SidebarProps {
@@ -66,6 +67,13 @@ export function Sidebar({ role }: SidebarProps) {
             icon: FileText,
             href: "/dashboard/reports",
             color: "text-purple-500",
+            roles: ["ADMIN", "SUPERADMIN"],
+        },
+        {
+            label: "Audit Logs",
+            icon: FileClock,
+            href: "/dashboard/audit-logs",
+            color: "text-amber-500",
             roles: ["ADMIN", "SUPERADMIN"],
         },
         {

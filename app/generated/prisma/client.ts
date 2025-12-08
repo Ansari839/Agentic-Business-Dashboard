@@ -74,3 +74,13 @@ export type ImageAsset = Prisma.ImageAssetModel
  * 
  */
 export type Notification = Prisma.NotificationModel
+/**
+ * Model AuditLog
+ * 
+ */
+export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model FeatureToggle
+ * 
+ */
+export type FeatureToggle = Prisma.FeatureToggleModel

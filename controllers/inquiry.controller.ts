@@ -3,6 +3,8 @@ import * as inquiryService from '@/services/inquiry.service';
 import { createInquirySchema, updateInquirySchema } from '@/helpers/validateInquiry';
 import { getSession } from '@/lib/session';
 import { InquiryStatus } from '@/constants/inquiries';
+import { captureAction } from '@/helpers/captureAction';
+import { ACTION_TYPES } from '@/constants/actionTypes';
 
 export const listInquiries = async (request: Request) => {
     try {
@@ -44,6 +46,19 @@ export const createInquiry = async (request: Request) => {
             ...rest,
             product: { connect: { id: productId } }
         });
+
+        // Inquiries are usually created by public users (unauthenticated), so userId might be null.
+        // Or could be manual creation by admin.
+        const session = await getSession();
+        await captureAction(
+            session?.id, // nullable
+            ACTION_TYPES.INQUIRY_CREATE,
+            "INQUIRY",
+            match.id,
+            { name: match.name, email: match.email },
+            request.headers.get("x-forwarded-for") || undefined
+        );
+
         return NextResponse.json(match, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });
@@ -64,6 +79,20 @@ export const updateInquiry = async (request: Request, { params }: { params: Prom
             ...validatedData,
             user
         });
+
+        let action = "INQUIRY_UPDATE";
+        if (validatedData.status) action = ACTION_TYPES.INQUIRY_STATUS_UPDATE;
+        if (validatedData.assignedToId) action = ACTION_TYPES.INQUIRY_ASSIGN;
+
+        await captureAction(
+            session?.id,
+            action,
+            "INQUIRY",
+            inquiry.id,
+            { changes: validatedData },
+            request.headers.get("x-forwarded-for") || undefined
+        );
+
         return NextResponse.json(inquiry);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });

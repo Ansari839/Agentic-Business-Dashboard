@@ -57,7 +57,9 @@ export const ModelName = {
   Agent: 'Agent',
   UiContent: 'UiContent',
   ImageAsset: 'ImageAsset',
-  Notification: 'Notification'
+  Notification: 'Notification',
+  AuditLog: 'AuditLog',
+  FeatureToggle: 'FeatureToggle'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -82,6 +84,10 @@ export const UserScalarFieldEnum = {
   email: 'email',
   role: 'role',
   password: 'password',
+  isActive: 'isActive',
+  apiLimits: 'apiLimits',
+  apiUsage: 'apiUsage',
+  featureFlags: 'featureFlags',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -175,6 +181,32 @@ export const NotificationScalarFieldEnum = {
 export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
+export const AuditLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  details: 'details',
+  ip: 'ip',
+  createdAt: 'createdAt'
+} as const
+
+export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const FeatureToggleScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  label: 'label',
+  isEnabled: 'isEnabled',
+  description: 'description',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FeatureToggleScalarFieldEnum = (typeof FeatureToggleScalarFieldEnum)[keyof typeof FeatureToggleScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -183,19 +215,19 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-export const JsonNullValueInput = {
-  JsonNull: 'JsonNull'
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
 export const NullableJsonNullValueInput = {
   DbNull: 'DbNull',
   JsonNull: 'JsonNull'
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: 'JsonNull'
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import * as productService from '@/services/product.service';
 import { productSchema } from '@/helpers/validateInput';
+import { captureAction } from '@/helpers/captureAction';
+import { ACTION_TYPES } from '@/constants/actionTypes';
+import { getSession } from '@/lib/session';
 
 export const listProducts = async (request: Request) => {
     try {
@@ -35,6 +38,17 @@ export const createProduct = async (request: Request) => {
         const validatedData = productSchema.parse(body);
 
         const product = await productService.createProduct(validatedData);
+
+        const session = await getSession();
+        await captureAction(
+            session?.id,
+            ACTION_TYPES.PRODUCT_CREATE,
+            "PRODUCT",
+            product.id,
+            { title: product.title },
+            request.headers.get("x-forwarded-for") || undefined
+        );
+
         return NextResponse.json(product, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });
@@ -50,6 +64,17 @@ export const updateProduct = async (request: Request, { params }: { params: Prom
         const validatedData = productSchema.parse(body);
 
         const product = await productService.updateProduct(id, validatedData);
+
+        const session = await getSession();
+        await captureAction(
+            session?.id,
+            ACTION_TYPES.PRODUCT_UPDATE,
+            "PRODUCT",
+            product.id,
+            { changes: body }, // capturing full body as changes
+            request.headers.get("x-forwarded-for") || undefined
+        );
+
         return NextResponse.json(product);
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });
@@ -60,6 +85,17 @@ export const deleteProduct = async (request: Request, { params }: { params: Prom
     try {
         const { id } = await params;
         await productService.deleteProduct(id);
+
+        const session = await getSession();
+        await captureAction(
+            session?.id,
+            ACTION_TYPES.PRODUCT_DELETE,
+            "PRODUCT",
+            id,
+            null,
+            request.headers.get("x-forwarded-for") || undefined
+        );
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

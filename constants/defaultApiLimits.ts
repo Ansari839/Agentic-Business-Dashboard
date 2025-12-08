@@ -1,0 +1,8 @@
+export const DEFAULT_API_LIMITS = {
+    LEAD_GEN: 100,
+    SEO: 50,
+    LINKEDIN: 200,
+    EMAIL_RESPONDER: 500,
+};
+
+export const SERVICES = ["LEAD_GEN", "SEO", "LINKEDIN", "EMAIL_RESPONDER"];
