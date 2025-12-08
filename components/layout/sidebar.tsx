@@ -10,7 +10,8 @@ import {
     MessageSquare,
     Palette,
     Bot,
-    Settings
+    Settings,
+    BarChart3
 } from "lucide-react";
 
 interface SidebarProps {
@@ -51,6 +52,13 @@ export function Sidebar({ role }: SidebarProps) {
             href: "/dashboard/agents",
             color: "text-emerald-500",
             roles: ["ADMIN", "SUPERADMIN"], // Hidden for SALES if strict logic applies, or handled in page
+        },
+        {
+            label: "Analytics",
+            icon: BarChart3,
+            href: "/dashboard/analytics",
+            color: "text-blue-600",
+            roles: ["ADMIN", "SUPERADMIN"],
         },
         {
             label: "Settings",
