@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '../app/generated/prisma/client';
+import { PrismaClient, Role, AgentType } from '../app/generated/prisma/client';
 import bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
@@ -110,6 +110,26 @@ async function main() {
     ]
   });
   console.log('Audit Logs seeded.');
+
+  // 5. Agents
+  const agentsData = [
+    { name: 'Lead Generator Alpha', type: AgentType.LEAD_GEN, enabled: true, config: { target: 'linkedin' } },
+    { name: 'SEO Optimizer Beta', type: AgentType.SEO, enabled: true, config: { keywords: ['nextjs', 'prisma'] } },
+    { name: 'Support Bot Gamma', type: AgentType.CHAT_SUPPORT, enabled: false, config: { tone: 'friendly' } },
+  ];
+
+  for (const agent of agentsData) {
+    await prisma.agent.create({
+      data: {
+        name: agent.name,
+        type: agent.type,
+        enabled: agent.enabled,
+        config: agent.config,
+        logs: [],
+      }
+    });
+  }
+  console.log(`Agents seeded: ${agentsData.length}`);
 }
 
 main()
