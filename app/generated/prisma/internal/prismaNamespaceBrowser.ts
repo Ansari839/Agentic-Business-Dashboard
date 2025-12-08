@@ -56,7 +56,8 @@ export const ModelName = {
   Inquiry: 'Inquiry',
   Agent: 'Agent',
   UiContent: 'UiContent',
-  ImageAsset: 'ImageAsset'
+  ImageAsset: 'ImageAsset',
+  Notification: 'Notification'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -158,6 +159,20 @@ export const ImageAssetScalarFieldEnum = {
 } as const
 
 export type ImageAssetScalarFieldEnum = (typeof ImageAssetScalarFieldEnum)[keyof typeof ImageAssetScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  message: 'message',
+  userId: 'userId',
+  read: 'read',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const SortOrder = {

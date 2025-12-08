@@ -37,3 +37,12 @@ export const AgentType = {
 } as const
 
 export type AgentType = (typeof AgentType)[keyof typeof AgentType]
+
+
+export const NotificationType = {
+  INQUIRY: 'INQUIRY',
+  AGENT_COMPLETE: 'AGENT_COMPLETE',
+  AGENT_ERROR: 'AGENT_ERROR'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]

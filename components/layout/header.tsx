@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 // Assuming we might move logout to a server action later, but for now simple form post to API
 // implementation from /app/admin/dashboard/page.tsx was <form action="/api/auth/logout" method="POST">
 
@@ -21,6 +22,7 @@ export function Header({ user }: HeaderProps) {
                 Admin Panel
             </div>
             <div className="flex items-center gap-x-4 ml-auto">
+                <NotificationBell />
                 <div className="flex flex-col items-end mr-4">
                     <span className="text-sm font-medium">{user.name || user.email}</span>
                     <span className="text-xs text-muted-foreground">{user.role}</span>

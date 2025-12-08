@@ -106,3 +106,20 @@ model ImageAsset {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType
+  message   String
+  userId    String?     // Optional: if notification is specific to a user
+  read      Boolean          @default(false)
+  metadata  Json?            // Store related entity ID (e.g., inquiryId)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+enum NotificationType {
+  INQUIRY
+  AGENT_COMPLETE
+  AGENT_ERROR
+}

@@ -47,3 +47,8 @@ export type UiContent = Prisma.UiContentModel
  * 
  */
 export type ImageAsset = Prisma.ImageAssetModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel

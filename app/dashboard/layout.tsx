@@ -2,6 +2,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 export default async function DashboardLayout({
     children,
@@ -18,16 +19,18 @@ export default async function DashboardLayout({
     // Detailed RBAC can be per-page or passed to sidebar/header.
 
     return (
-        <div className="h-full relative">
-            <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-[80] bg-gray-900">
-                <Sidebar role={session.role} />
-            </div>
-            <main className="md:pl-72 h-full">
-                <Header user={session} />
-                <div className="h-full p-8 pt-6">
-                    {children}
+        <NotificationProvider>
+            <div className="h-full relative">
+                <div className="hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-[80] bg-gray-900">
+                    <Sidebar role={session.role} />
                 </div>
-            </main>
-        </div>
+                <main className="md:pl-72 h-full">
+                    <Header user={session} />
+                    <div className="h-full p-8 pt-6">
+                        {children}
+                    </div>
+                </main>
+            </div>
+        </NotificationProvider>
     );
 }
