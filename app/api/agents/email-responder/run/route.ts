@@ -1,4 +1,4 @@
 export const dynamic = 'force-dynamic';
-import { runEmailResponder } from "@/controllers/agent.controller";
+import { runAgent } from "@/controllers/agents/emailResponder.controller";
 
-export const POST = runEmailResponder;
+export const POST = runAgent;
