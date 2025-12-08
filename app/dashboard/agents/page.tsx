@@ -17,6 +17,7 @@ import { Switch } from "@/components/ui/switch";
 import { Play, Edit, Trash, Plus, RotateCw, FileText } from "lucide-react";
 import { AgentType, AGENT_TYPE_LABELS } from "@/constants/agentTypes";
 import { formatLogDate } from "@/helpers/formatLogs";
+import { AgentConfigModal } from "@/components/agents/AgentConfigModal";
 
 interface Agent {
     id: string;
@@ -25,12 +26,15 @@ interface Agent {
     enabled: boolean;
     createdAt: string;
     logs: any[];
+    config?: any;
 }
 
 export default function AgentsPage() {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [loading, setLoading] = useState(true);
     const [runningId, setRunningId] = useState<string | null>(null);
+    const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const fetchAgents = async () => {
         setLoading(true);
@@ -52,9 +56,7 @@ export default function AgentsPage() {
     }, []);
 
     const handleToggle = async (id: string, currentStatus: boolean) => {
-        // Optimistic update
         setAgents(prev => prev.map(a => a.id === id ? { ...a, enabled: !currentStatus } : a));
-
         try {
             await fetch(`/api/agents/${id}`, {
                 method: "PUT",
@@ -62,7 +64,6 @@ export default function AgentsPage() {
                 body: JSON.stringify({ enabled: !currentStatus }),
             });
         } catch (error) {
-            // Revert on error
             setAgents(prev => prev.map(a => a.id === id ? { ...a, enabled: currentStatus } : a));
             console.error("Failed to toggle agent", error);
         }
@@ -78,14 +79,25 @@ export default function AgentsPage() {
         }
     };
 
-    const handleRun = async (id: string) => {
-        setRunningId(id);
+    const openRunModal = (agent: Agent) => {
+        setSelectedAgent(agent);
+        setModalOpen(true);
+    };
+
+    const handleAgentRun = async (config: any) => {
+        if (!selectedAgent) return;
+        setRunningId(selectedAgent.id);
+
         try {
-            const res = await fetch(`/api/agents/${id}/run`, { method: "POST" });
+            const res = await fetch(`/api/agents/${selectedAgent.id}/run`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ config })
+            });
             const data = await res.json();
             if (data.success) {
-                alert(`Agent executed successfully: ${data.data.result.status}`);
-                fetchAgents(); // Refresh to show new log
+                // Success message or toast could go here
+                fetchAgents();
             } else {
                 alert(`Execution failed: ${data.error}`);
             }
@@ -166,6 +178,9 @@ export default function AgentsPage() {
                                                         <span className={lastLog.status === 'ERROR' ? 'text-red-500' : 'text-green-500'}>
                                                             {lastLog.status}
                                                         </span>
+                                                        <span className="text-muted-foreground italic">
+                                                            {lastLog.message?.substring(0, 30)}...
+                                                        </span>
                                                     </div>
                                                 ) : (
                                                     <span className="text-muted-foreground text-xs">Never</span>
@@ -176,9 +191,9 @@ export default function AgentsPage() {
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
-                                                        onClick={() => handleRun(agent.id)}
+                                                        onClick={() => openRunModal(agent)}
                                                         disabled={!agent.enabled || runningId === agent.id}
-                                                        title="Run Manually"
+                                                        title="Run Configured"
                                                     >
                                                         {runningId === agent.id ? (
                                                             <RotateCw className="h-4 w-4 animate-spin" />
@@ -209,6 +224,13 @@ export default function AgentsPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            <AgentConfigModal
+                agent={selectedAgent}
+                open={modalOpen}
+                onOpenChange={setModalOpen}
+                onSubmit={handleAgentRun}
+            />
         </div>
     );
 }

@@ -103,7 +103,16 @@ export const deleteAgent = async (req: NextRequest, { params }: { params: Promis
 export const runAgent = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     try {
         const { id } = await params;
-        const agent = await AgentService.runAgent(id);
+
+        let runConfig = {};
+        try {
+            const body = await req.json();
+            runConfig = body.config || {};
+        } catch (e) {
+            // Ignore JSON parse error if body is empty
+        }
+
+        const agent = await AgentService.runAgent(id, runConfig);
         // Return the latest log entry
         const latestLog = (agent.logs as any[])[0];
 
@@ -120,4 +129,4 @@ export const runAgent = async (req: NextRequest, { params }: { params: Promise<{
     } catch (error: any) {
         return NextResponse.json({ success: false, error: error.message || "Failed to run agent" }, { status: 500 });
     }
-}
+};

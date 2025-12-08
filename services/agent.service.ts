@@ -49,7 +49,7 @@ export const deleteAgent = async (id: string) => {
     });
 };
 
-export const runAgent = async (id: string) => {
+export const runAgent = async (id: string, runConfig?: any) => {
     const agent = await prisma.agent.findUnique({ where: { id } });
     if (!agent) throw new Error("Agent not found");
 
@@ -57,25 +57,60 @@ export const runAgent = async (id: string) => {
         throw new Error("Agent is disabled");
     }
 
-    // SIMULATION: Perform action based on type
-    // In a real app, this would call external APIs or background jobs
+    // Merge stored config with runtime overrides
+    const finalConfig = { ...(agent.config as object), ...runConfig };
+
+    // SIMULATION: Perform action based on type (Mocking OpenAI)
+    let executionResult: any = { message: "Task completed" };
+
+    // Simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    switch (agent.type) {
+        case AgentType.LEAD_GEN:
+            executionResult = {
+                message: `Generated 5 leads for area: ${finalConfig.area || 'General'}`,
+                leads: ["Tech Corp", "StartUp Inc", "Enterprise Ltd"].map(n => ({ name: n, score: Math.floor(Math.random() * 100) }))
+            };
+            break;
+        case AgentType.SEO:
+            executionResult = {
+                message: `Optimized content for keywords: ${finalConfig.keywords?.join(', ') || 'default'}`,
+                seoScore: 95
+            };
+            break;
+        case AgentType.LINKEDIN:
+            executionResult = {
+                message: `Sent connection requests to ${finalConfig.targetAudience || 'CEOs'}`,
+                sentCount: 12
+            };
+            break;
+        case AgentType.EMAIL_RESPONDER:
+            executionResult = {
+                message: `Responded to ${finalConfig.inquiryIds?.length || 0} inquiries`,
+                status: "success"
+            };
+            break;
+        default:
+            executionResult = {
+                message: `Executed ${agent.type} task successfully with config.`,
+                configUsed: finalConfig
+            };
+    }
+
     const logEntry = {
         timestamp: new Date().toISOString(),
-        status: Math.random() > 0.8 ? "ERROR" : "SUCCESS",
-        message: `Executed ${agent.type} task successfully.`,
+        status: "SUCCESS", // We assume success for simulation
+        message: executionResult.message,
         details: {
             simulated: true,
-            executionTimeMs: Math.floor(Math.random() * 1000),
+            executionTimeMs: 1500,
+            result: executionResult
         }
     };
 
-    // Append log
-    // Prisma doesn't have a simple 'push' for JSON arrays in all adapters, but we can read-append-write or use raw
-    // For simplicity here, we'll do read-update
-    // NOTE: In production with high concurrency, this needs better handling (e.g. separate Log table)
-
     const currentLogs = (agent.logs as unknown as any[]) || [];
-    const newLogs = [logEntry, ...currentLogs].slice(0, 50); // Keep last 50
+    const newLogs = [logEntry, ...currentLogs].slice(0, 50);
 
     return await prisma.agent.update({
         where: { id },
