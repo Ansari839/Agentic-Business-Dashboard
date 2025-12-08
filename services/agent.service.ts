@@ -68,9 +68,24 @@ export const runAgent = async (id: string, runConfig?: any) => {
 
     switch (agent.type) {
         case AgentType.LEAD_GEN:
+            let productNames = "General";
+            if (finalConfig.products && Array.isArray(finalConfig.products) && finalConfig.products.length > 0) {
+                const products = await prisma.product.findMany({
+                    where: { id: { in: finalConfig.products } },
+                    select: { title: true }
+                });
+                if (products.length > 0) {
+                    productNames = products.map(p => p.title).join(", ");
+                }
+            }
+
             executionResult = {
-                message: `Generated 5 leads for area: ${finalConfig.area || 'General'}`,
-                leads: ["Tech Corp", "StartUp Inc", "Enterprise Ltd"].map(n => ({ name: n, score: Math.floor(Math.random() * 100) }))
+                message: `Generated 5 leads for area: ${finalConfig.area || 'Global'} interested in: ${productNames}`,
+                leads: [
+                    { name: "Tech Corp", email: "contact@techcorp.com", interestedIn: productNames },
+                    { name: "StartUp Inc", email: "hello@startup.io", interestedIn: productNames },
+                    { name: "Enterprise Ltd", email: "procurement@ent.com", interestedIn: productNames }
+                ]
             };
             break;
         case AgentType.SEO:
