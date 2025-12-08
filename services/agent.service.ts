@@ -1,6 +1,5 @@
 import prisma from "@/lib/prisma";
-import { AgentType } from "@/constants/agentTypes";
-import { Prisma } from "@prisma/client";
+import { AgentType, InquiryStatus } from "@/app/generated/prisma/client";
 
 export const getAgents = async () => {
     return await prisma.agent.findMany({
@@ -31,106 +30,72 @@ export const createAgent = async (data: {
     });
 };
 
-export const updateAgent = async (id: string, data: {
-    name?: string;
-    type?: AgentType;
-    enabled?: boolean;
-    config?: any;
-}) => {
-    return await prisma.agent.update({
-        where: { id },
-        data,
-    });
-};
-
 export const deleteAgent = async (id: string) => {
     return await prisma.agent.delete({
         where: { id },
     });
 };
 
-export const runAgent = async (id: string, runConfig?: any) => {
-    const agent = await prisma.agent.findUnique({ where: { id } });
+interface EmailResponderConfig {
+    inquiryIds: string[];
+    emailAPIKey?: string;
+}
+
+export const runEmailResponder = async (agentId: string, config: EmailResponderConfig) => {
+    const agent = await prisma.agent.findUnique({ where: { id: agentId } });
     if (!agent) throw new Error("Agent not found");
+    if (!agent.enabled) throw new Error("Agent is disabled");
 
-    if (!agent.enabled) {
-        throw new Error("Agent is disabled");
-    }
+    const sentEmails = [];
 
-    // Merge stored config with runtime overrides
-    const finalConfig = { ...(agent.config as object), ...runConfig };
-
-    // SIMULATION: Perform action based on type (Mocking OpenAI)
-    let executionResult: any = { message: "Task completed" };
-
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    switch (agent.type) {
-        case AgentType.LEAD_GEN:
-            let productNames = "General";
-            if (finalConfig.products && Array.isArray(finalConfig.products) && finalConfig.products.length > 0) {
-                const products = await prisma.product.findMany({
-                    where: { id: { in: finalConfig.products } },
-                    select: { title: true }
-                });
-                if (products.length > 0) {
-                    productNames = products.map(p => p.title).join(", ");
-                }
+    // Process each inquiry
+    for (const inquiryId of config.inquiryIds) {
+        try {
+            const inquiry = await prisma.inquiry.findUnique({ where: { id: inquiryId } });
+            if (!inquiry) {
+                sentEmails.push({ inquiryId, status: "FAILED", error: "Inquiry not found" });
+                continue;
             }
 
-            executionResult = {
-                message: `Generated 5 leads for area: ${finalConfig.area || 'Global'} interested in: ${productNames}`,
-                leads: [
-                    { name: "Tech Corp", email: "contact@techcorp.com", interestedIn: productNames },
-                    { name: "StartUp Inc", email: "hello@startup.io", interestedIn: productNames },
-                    { name: "Enterprise Ltd", email: "procurement@ent.com", interestedIn: productNames }
-                ]
-            };
-            break;
-        case AgentType.SEO:
-            executionResult = {
-                message: `Optimized content for keywords: ${finalConfig.keywords?.join(', ') || 'default'}`,
-                seoScore: 95
-            };
-            break;
-        case AgentType.LINKEDIN:
-            executionResult = {
-                message: `Sent connection requests to ${finalConfig.targetAudience || 'CEOs'}`,
-                sentCount: 12
-            };
-            break;
-        case AgentType.EMAIL_RESPONDER:
-            executionResult = {
-                message: `Responded to ${finalConfig.inquiryIds?.length || 0} inquiries`,
-                status: "success"
-            };
-            break;
-        default:
-            executionResult = {
-                message: `Executed ${agent.type} task successfully with config.`,
-                configUsed: finalConfig
-            };
+            // SIMULATION: Send email
+            // In a real app, use OpenAI to generate response based on inquiry.message
+            // and use a mailer service to send.
+
+            const responseText = `Dear ${inquiry.name},\n\nThank you for your interest in ${inquiry.productId}. We have received your message: "${inquiry.message}".\n\nA representative will contact you shortly.\n\nBest,\nAutomated Agent`;
+
+            // Simulate delay
+            await new Promise(r => setTimeout(r, 500));
+
+            // Update inquiry status
+            await prisma.inquiry.update({
+                where: { id: inquiryId },
+                data: { status: InquiryStatus.CONTACTED }
+            });
+
+            sentEmails.push({
+                inquiryId,
+                status: "SENT",
+                responseText,
+                recipient: inquiry.email
+            });
+
+        } catch (error: any) {
+            sentEmails.push({ inquiryId, status: "FAILED", error: error.message });
+        }
     }
 
     const logEntry = {
         timestamp: new Date().toISOString(),
-        status: "SUCCESS", // We assume success for simulation
-        message: executionResult.message,
-        details: {
-            simulated: true,
-            executionTimeMs: 1500,
-            result: executionResult
-        }
+        status: "SUCCESS",
+        message: `Processed ${sentEmails.length} inquiries`,
+        details: { sentEmails }
     };
 
     const currentLogs = (agent.logs as unknown as any[]) || [];
     const newLogs = [logEntry, ...currentLogs].slice(0, 50);
 
     return await prisma.agent.update({
-        where: { id },
-        data: {
-            logs: newLogs,
-        },
+        where: { id: agentId },
+        data: { logs: newLogs }
     });
 };

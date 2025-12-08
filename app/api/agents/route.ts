@@ -1,10 +1,5 @@
-import { NextRequest } from "next/server";
+export const dynamic = 'force-dynamic';
 import { listAgents, createAgent } from "@/controllers/agent.controller";
 
-export async function GET() {
-    return listAgents();
-}
-
-export async function POST(req: NextRequest) {
-    return createAgent(req);
-}
+export const GET = listAgents;
+export const POST = createAgent;
