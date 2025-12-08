@@ -11,7 +11,8 @@ import {
     Palette,
     Bot,
     Settings,
-    BarChart3
+    BarChart3,
+    FileText
 } from "lucide-react";
 
 interface SidebarProps {
@@ -58,6 +59,13 @@ export function Sidebar({ role }: SidebarProps) {
             icon: BarChart3,
             href: "/dashboard/analytics",
             color: "text-blue-600",
+            roles: ["ADMIN", "SUPERADMIN"],
+        },
+        {
+            label: "Reports",
+            icon: FileText,
+            href: "/dashboard/reports",
+            color: "text-purple-500",
             roles: ["ADMIN", "SUPERADMIN"],
         },
         {
